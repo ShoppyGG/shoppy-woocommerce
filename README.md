@@ -13,7 +13,7 @@ Accept PayPal, Bitcoin, Ethereum and Litecoin on your store in a central gateway
 ## Installation
 
 
-1. Download and unzip the [latest]() release zip file.
+1. Download and unzip the [latest](https://github.com/ShoppyGG/shoppy-woocommerce/releases/download/1.0/woocommerce-shoppy-1.0.zip) release zip file.
 2. Navigate to *Plugins* -> Add New -> Upload Plugin
 3. Select the downloaded plugin and click "Install Now"
 4. Once the installation has completed, press "Activate".
