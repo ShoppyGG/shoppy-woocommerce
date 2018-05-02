@@ -8,7 +8,7 @@ License: MIT
 
 ## Description
 
-Accept PayPal, Bitcoin, Ethereum and Litecoin on your store in a central gateway using [Shoppy)(https://shoppy.gg)
+Accept PayPal, Bitcoin, Ethereum and Litecoin on your store in a central gateway using [Shoppy](https://shoppy.gg)
 
 ## Installation
 
