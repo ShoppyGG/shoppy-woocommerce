@@ -231,7 +231,7 @@ function shoppy_gateway_load()
             $ch = curl_init();
 
             curl_setopt_array($ch, [
-                CURLOPT_URL            => 'https://shoppy.gg/api/1.0/pay',
+                CURLOPT_URL            => 'https://shoppy.gg/api/v1/pay',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_USERAGENT      => 'Shoppy WooCommerce (PHP ' . PHP_VERSION . ')',
                 CURLOPT_HTTPHEADER     => [
