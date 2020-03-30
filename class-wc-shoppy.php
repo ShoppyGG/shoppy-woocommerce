@@ -9,7 +9,7 @@ if (!defined('ABSPATH')) {
  * Description:  A payment gateway for Shoppy Pay
  * Author: Shoppy
  * Author URI: https://shoppy.gg
- * Version: 1.0.0
+ * Version: 1.0.1
  */
 
 add_action('plugins_loaded', 'shoppy_gateway_load', 0);
@@ -101,11 +101,11 @@ function shoppy_gateway_load()
             </div>
 
             <script>
-				jQuery(document).ajaxComplete(function (event, xhr, opt) {
-					if (xhr.responseJSON && xhr.responseJSON.payment) {
-						window.shoppy.launch(xhr.responseJSON.payment)
-					}
-				})
+                jQuery(document).ajaxComplete(function (event, xhr, opt) {
+                    if (xhr.responseJSON && xhr.responseJSON.payment) {
+                        window.shoppy.launch(xhr.responseJSON.payment)
+                    }
+                })
             </script>
 
             <?php
@@ -238,13 +238,12 @@ function shoppy_gateway_load()
                     'Authorization: ' . $this->api_key
                 ],
                 CURLOPT_POSTFIELDS     => json_encode([
-			'title' => $order->order_key,
-			'price' => $order->get_total(),
-			'webhook_urls'  => [
-			    add_query_arg('wc_id', $order->get_id(), $this->webhook_url)
-			],
-			'confirmations' => $this->confirmations
-                    ]
+                    'title' => $order->order_key,
+                    'value' => $order->get_total(),
+                    'webhook_urls'  => [
+                        add_query_arg('wc_id', $order->get_id(), $this->webhook_url)
+                    ],
+                    'confirmations' => $this->confirmations
                 ])
             ]);
 
@@ -260,7 +259,7 @@ function shoppy_gateway_load()
             if (isset($response['error'])) {
                 return wc_add_notice(__('Payment error:', 'woothemes') . 'Shoppy API error: ' . join($response['error']), 'error');
             } else {
-                return $response['details']['product']['id'];
+                return $response['id'];
             }
         }
 
@@ -302,25 +301,50 @@ function shoppy_gateway_load()
             $this->log->add('shoppy', 'Processing webhook with secret: ' . $this->webhook_secret);
             $data = file_get_contents('php://input');
 
-            $signature = hash_hmac('sha512', $data, $this->webhook_secret);
-            $is_valid = hash_equals($signature, $_SERVER['HTTP_X_SHOPPY_SIGNATURE']);
+            $this->log->add('shoppy', 'Processing webhook');
 
-            $this->log->add('shoppy', 'Signature: ' . $signature);
-            if ($is_valid) {
-                $this->log->add('shoppy', 'Processing webhook');
+            $data = json_decode($data);
+            $order = $this->get_shoppy_order($data->data->order->id);
 
-                $data = json_decode($data);
+            $this->log->add('shoppy', 'Processing order: ' . $data->data->order->id);
 
-                $order = wc_get_order($_REQUEST['wc_id']);
-                $this->log->add('shoppy', 'Order #' . $_REQUEST['wc_id'] . ' Status: ' . $data->webhook_type);
+            if($order) {
+                $wc_order = wc_get_order($_REQUEST['wc_id']);
+                $this->log->add('shoppy', 'Order #' . $_REQUEST['wc_id'] . ' Status: ' . $order->paid_at);
 
-                if ($data->webhook_type === 100) {
-                    $order->payment_complete();
+                if ($order->paid_at) {
+                    $wc_order->payment_complete();
+
+                    //$this->log->add('shoppy', 'WC_ORDER: ' . $wc_order);
 
                     $this->log->add('shoppy', 'Marking payment as completed');
                 }
             } else {
-                $this->log->add('shoppy', 'Invalid signature, skipping');
+                $this->log->add('shoppy', 'Invalid order specified');
+            }
+        }
+
+        function get_shoppy_order($order_id) {
+            $ch = curl_init();
+
+            curl_setopt_array($ch, [
+                CURLOPT_URL            => 'https://shoppy.gg/api/v1/orders/' . $order_id,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_USERAGENT      => 'Shoppy WooCommerce (PHP ' . PHP_VERSION . ')',
+                CURLOPT_HTTPHEADER     => [
+                    'Authorization: ' . $this->api_key
+                ]
+            ]);
+
+            $response = json_decode(curl_exec($ch));
+
+            curl_close($ch);
+
+            if (!$response->status) {
+                return $response;
+            } else {
+                $this->log->add('shoppy', 'Unable to verify order: ' . $order_id);
+                return null;
             }
         }
     }
