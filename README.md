@@ -2,7 +2,7 @@
 
 ```
 Requires at least: 4.2
-Tested up to: 4.9.5
+Tested up to: 5.3.2
 License: MIT
 ```
 
