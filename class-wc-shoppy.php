@@ -231,20 +231,19 @@ function shoppy_gateway_load()
             $ch = curl_init();
 
             curl_setopt_array($ch, [
-                CURLOPT_URL            => 'https://shoppy.gg/api/v1/pay',
+                CURLOPT_URL            => 'https://shoppy.gg/api/v2/pay',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_USERAGENT      => 'Shoppy WooCommerce (PHP ' . PHP_VERSION . ')',
                 CURLOPT_HTTPHEADER     => [
                     'Authorization: ' . $this->api_key
                 ],
                 CURLOPT_POSTFIELDS     => json_encode([
-                    'product' => [
-                        'title'         => $order->order_key,
-                        'price'         => $order->get_total(),
-                        'webhook_urls'  => [
-                            add_query_arg('wc_id', $order->get_id(), $this->webhook_url)
-                        ],
-                        'confirmations' => $this->confirmations
+			'title' => $order->order_key,
+			'price' => $order->get_total(),
+			'webhook_urls'  => [
+			    add_query_arg('wc_id', $order->get_id(), $this->webhook_url)
+			],
+			'confirmations' => $this->confirmations
                     ]
                 ])
             ]);
